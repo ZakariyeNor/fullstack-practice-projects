@@ -1,0 +1,105 @@
+
+# Define the individual containers (services) that make up your full app
+services:
+
+  # --- Backend service (Django App) ---
+  web:
+    # Build the image fo rDjango using the Dockerfile located inside ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    
+
+    # Assign a readable container name instead of auto-generated one
+    container_name: dockrboard_web
+
+
+    # Command that runs when the container starts
+    command: ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+
+
+    # Mount local backend folder into container for live updates during development
+    volumes:
+      - ./backend:/app:delegated
+    
+
+    # Expose port 8000 inside container
+    ports:
+      - "8000:8000"
+    
+
+    # Load environment varaiables
+    env_file:
+      - ./.env
+    
+    # Ensure backend starts only after DB and Redis are up
+    depends_on:
+      - db
+      - redis
+    
+  
+  # --- FRONTEND SERVICE (Next.js App) ---
+  frontend:
+    # Build frontend image
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    
+
+    # Custom name for the container
+    container_name: dockrboard_frontend
+
+    # Mount frontend source code so changes reflect live during development
+    volumes:
+      - ./frontend:/usr/src/app:delegated
+    
+    # Map container port 3000
+    ports:
+      - "3000:3000"
+    
+    # Load frontend env file
+    env_file:
+      - ./.env
+    
+    # Command that runs the next.js dev server
+    command: ["npm", "run", "dev"]
+  
+
+  # --- DATABASE SERVICE (PostgreSQL) ---
+  db:
+    # PostgreSQL
+    image: postgres:15
+
+    # Custom name fo db container
+    container_name: dockrboard_db
+
+    # Restart container automatically if it stops or system restarts
+    restart: always
+
+    # Pass DB credentials and name using environment variables from .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    
+    # Create a named volume to persist DB data even if the container is destroyed
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+  
+  # --- CACHE/BROKER SERVICE (Redis) ---
+  redis:
+    # Use redis
+    image: redis:7-alpine
+
+    # Custom name
+    container_name: dockrboard_redis
+
+    # Automatically restart Redis if it crashes or Docker restarts
+    restart: always
+
+
+# --- VOLUMES ---
+# Define named volumes that persist data between container rebuilds
+volumes:
+  postgres_data:

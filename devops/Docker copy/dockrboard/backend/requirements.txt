@@ -1,0 +1,8 @@
+Django>=4.2
+gunicorn
+psycopg2-binary
+djangorestframework
+channels
+channels_redis
+django-oauth-toolkit
+dj-database-url==1.0.0

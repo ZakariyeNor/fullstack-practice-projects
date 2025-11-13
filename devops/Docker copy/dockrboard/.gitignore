@@ -1,0 +1,21 @@
+# Python / Django
+__pycache__/
+*.pyc
+env/
+*.sqlite3
+/staticfiles/
+media/
+
+# Node
+node_modules/
+.next/
+dist/
+
+# Docker
+docker-compose.override.yml
+.env
+
+# Editor
+.vscode/
+.idea/
+.DS_Store

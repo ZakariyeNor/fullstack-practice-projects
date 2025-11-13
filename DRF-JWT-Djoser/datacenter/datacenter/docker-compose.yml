@@ -1,0 +1,37 @@
+# Different containers for each service
+services:
+  # Backend
+  web: 
+    build: .
+    container_name: data_center
+    command: python3 manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db    # Databse starts before the web
+    env_file:
+      - .env  # Accesses the local .env file 
+
+  # Database
+  db:
+    image: postgres:15
+    container_name: datacenter_db
+
+    # Get's varaibles from .env file
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_HOST_PORT}:${POSTGRES_PORT}"
+    
+    # Maps Docker volume 'pgdata' to Postgres data folder for persistence
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+
+  # Declares the named Docker volume 'pgdata' managed by Docker
+  pgdata:
